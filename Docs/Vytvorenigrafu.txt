@@ -1,0 +1,13 @@
+Vytvoreni grafu
+Graf vytvorime tak ze nejdrive napiseme jmeno uzlu(zaciname nultym a pokracujeme postupne) a pote vsechny jeho uzly se kterymi je spojen.
+(nulty uzel)jack- amy, erin
+(prvni uzel)amy- jack, erin
+(druhy uzel)erin- sally, amy, jack
+(treti uzel)sally-erin
+(ctvrty uzel)...
+.
+.
+.
+.
+
+Soubor musi byt ulozen s priponou .txt
