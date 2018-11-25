@@ -1,12 +1,14 @@
+#define _CRT_SECURE_NO_WARNINGS //nechat prvni
+
 #include <stdio.h>
 
-typedef struct {
+typedef struct Node{
 	int value;
 	int nConnections;
-	Node **connections;
+	struct Node **connections;
 }Node;
 
-typedef struct {
+typedef struct Graph{
 	Node *nodes;
 	int numNodes;
 }Graph;
@@ -20,7 +22,7 @@ void LoadGraphFromFile(FILE *f, Graph *graph) {
 void PrintGraph(Graph *graph) {
 	//vytiskne graf jako seznam uzluuu
 	for (int i = 0; i < graph->numNodes; i++) {
-		printf("Uzel s hodnotou %d\r\n", graph->nodes[i]);
+		printf("Uzel s hodnotou %d\r\n", graph->nodes[i].value);
 	}
 }
 
