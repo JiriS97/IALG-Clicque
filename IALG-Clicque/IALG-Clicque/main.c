@@ -1,21 +1,58 @@
 #define _CRT_SECURE_NO_WARNINGS //nechat prvni
 
 #include <stdio.h>
+#include <stdlib.h>
+#define MIN_ALOKACE 10
 
-typedef struct Node{
+typedef struct Node {
 	int value;
 	int nConnections;
 	struct Node **connections;
 }Node;
 
-typedef struct Graph{
+typedef struct Graph {
 	Node *nodes;
 	int numNodes;
 }Graph;
 
-void LoadGraphFromFile(FILE *f, Graph *graph) {
+Graph* LoadGraphFromFile(FILE *f) {
 	//alokace pole node podle delky nacitaneho grafu
 	//ulozeni delky grafu do numNodes
+	int c;
+	int numNodes = 0; //pocet prvku
+	int *numConnections; //pocet propoju mezi uzly 
+	int numComma = 0; // pocet carek
+	int alloccated = MIN_ALOKACE;
+	Graph* graph;
+
+	numConnections = calloc(MIN_ALOKACE, sizeof(int));
+	do
+	{
+		c = fgetc(f);
+		if (c == ':') //zjistovani poctu uzlu pomoci dvojtecky
+		{
+			numNodes++;
+			if (numNodes == alloccated)
+			{
+				alloccated += MIN_ALOKACE;
+				numConnections = realloc(numConnections, alloccated * sizeof(int)); // pokud nemam dostatek mista tak prealokuju
+			}
+		}
+		if (c == ',')numConnections[numNodes - 1]++; //zjistovani poctu propoju pro dany uzel 
+
+
+	} while (c != EOF);
+	graph = malloc(sizeof(Graph));// alokace grafu
+	graph->numNodes = numNodes;
+	graph->nodes = malloc(numNodes * sizeof(Node));
+	for (int i = 0; i < numNodes; i++)
+	{
+		graph->nodes[i].nConnections = numConnections[i] + 1;
+		graph->nodes[i].connections = malloc(graph->nodes[i].nConnections * sizeof(Node*));
+	}
+	free(numConnections);
+	rewind(f);
+	//dopsat prochazeni souboru a naplneni jiz naalokovaneho prostoru
 
 }
 
