@@ -78,6 +78,10 @@ void PrintGraph(Graph *graph) {
 	}
 }
 
+void DestroyGraph(Graph *graph) {
+	//odalokuje prostor v pameti zabrany grafem
+}
+
 void FindCliques(Graph *source, Graph **foundCliques, int *numFoundCliques) {
 	//vyhleda nejvetsi kliky v grafu source a vrati je v poli foundCliques, jejich pocet ulozi do numFoundCliques
 	//Bron–Kerbosch algorithm https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm?fbclid=IwAR1LpZZxsoxn0MeqUbiZahtBIuifaBAsSLxdx7oUbqiekWcsbgwWxds-wQU
