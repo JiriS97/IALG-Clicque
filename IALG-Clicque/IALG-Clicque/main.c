@@ -51,9 +51,24 @@ Graph* LoadGraphFromFile(FILE *f) {
 		graph->nodes[i].connections = malloc(graph->nodes[i].nConnections * sizeof(Node*));
 	}
 	free(numConnections);
-	rewind(f);
-	//dopsat prochazeni souboru a naplneni jiz naalokovaneho prostoru
+	numConnections = NULL;
 
+	rewind(f);
+	//prochazeni souboru a naplneni jiz naalokovaneho prostoru
+	for (int i = 0; i < graph->numNodes; i++) {
+		int read = fscanf(f, "%d:", &(graph->nodes[i].value));
+		//printf("Read %d values; Node id: %d\r\n", read, graph->nodes[i].value);
+
+		for (int j = 0; j < graph->nodes[i].nConnections; j++) {
+			int readNodeId;
+			int read;
+			if (j < graph->nodes[i].nConnections - 1) read = fscanf(f, "%d,", &readNodeId);
+			else read = fscanf(f, "%d", &readNodeId);
+			//printf("	Read %d values; Conn to: %d\r\n", read, readNodeId);
+			graph->nodes[i].connections[j] = &(graph->nodes[readNodeId]);
+		}
+	}
+	return graph;
 }
 
 void PrintGraph(Graph *graph) {
@@ -69,7 +84,7 @@ void FindCliques(Graph *source, Graph **foundCliques, int *numFoundCliques) {
 }
 
 int main(int argc, char **argv) {
-	Graph graph;
+	Graph *graph;
 
 	if (argc != 2) {
 		fprintf(stderr, "Tento program se spousti s jednim parametrem, kterym je nazev souboru s grafem!\r\n");
@@ -82,12 +97,12 @@ int main(int argc, char **argv) {
 		return 2;
 	}
 
-	LoadGraphFromFile(f, &graph);
+	graph = LoadGraphFromFile(f);
 
 	//.. algoritmus pro hledani kliky	
 	Graph *clicques;  //bude obsahovat uzly grafu, ktere jsou soucasti kliky
 	int numClicques;  //pocet klik
-	FindCliques(&graph, &clicques, &numClicques);
+	FindCliques(graph, &clicques, &numClicques);
 
 	for (int i = 0; i < numClicques; i++) {
 		printf("\r\nNalezena klika:\r\n");
