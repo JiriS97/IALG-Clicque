@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "check.h" //nechat posledni
 #define MIN_ALOKACE 10
 
 typedef struct Node {
@@ -80,14 +82,44 @@ void PrintGraph(Graph *graph) {
 
 void DestroyGraph(Graph *graph) {
 	//odalokuje prostor v pameti zabrany grafem
+	for (int i = 0; i < graph->numNodes; i++) {
+		free(graph->nodes[i].connections); //odalokuje pole odkazu pro kazdy prvek
+		graph->nodes[i].connections = NULL;
+	}
+	free(graph->nodes); //odalokuje pole prvku
+	//free(graph);
 }
 
 void FindCliques(Graph *source, Graph **foundCliques, int *numFoundCliques) {
 	//vyhleda nejvetsi kliky v grafu source a vrati je v poli foundCliques, jejich pocet ulozi do numFoundCliques
 	//Bron–Kerbosch algorithm https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm?fbclid=IwAR1LpZZxsoxn0MeqUbiZahtBIuifaBAsSLxdx7oUbqiekWcsbgwWxds-wQU
+	
+	int exampleNumCliques = 2;
+	int exampleNumNodes1 = 3;
+	int exampleNumNodes2 = 5;
+	int exampleNumConnections = 1;
+
+	(*foundCliques) = malloc(exampleNumCliques * sizeof(Graph)); //alokace poctu grafu
+	(*foundCliques)[0].nodes = calloc(exampleNumNodes1, sizeof(Node)); //alokace poctu uzlu pro prvni graf
+	(*foundCliques)[0].numNodes = exampleNumNodes1;
+	for (int i = 0; i < exampleNumNodes1; i++) {
+		(*foundCliques)[0].nodes[i].nConnections = exampleNumConnections;
+		(*foundCliques)[0].nodes[i].connections = calloc(exampleNumConnections, sizeof(Node*)); //alokace poctu propoju pro kazdy uzel
+	}
+
+
+	(*foundCliques)[1].nodes = calloc(exampleNumNodes2, sizeof(Node)); //alokace poctu uzlu pro druhy graf
+	(*foundCliques)[1].numNodes = exampleNumNodes2;
+	for (int i = 0; i < exampleNumNodes2; i++) {
+		(*foundCliques)[1].nodes[i].nConnections = exampleNumConnections;
+		(*foundCliques)[1].nodes[i].connections = calloc(exampleNumConnections, sizeof(Node*)); //alokace poctu propoju pro kazdy uzel
+	}
+	
+	*numFoundCliques = exampleNumCliques;
 }
 
 int main(int argc, char **argv) {
+	//////////////////////////////// INICIALIZACE, NACTENI ZE SOUBORU ////////////////////////////////
 	Graph *graph;
 
 	if (argc != 2) {
@@ -102,10 +134,12 @@ int main(int argc, char **argv) {
 	}
 
 	graph = LoadGraphFromFile(f);
+	fclose(f); //zavru soubor, mam nacteno
+	f = NULL;
 
-	//.. algoritmus pro hledani kliky	
-	Graph *clicques;  //bude obsahovat uzly grafu, ktere jsou soucasti kliky
-	int numClicques;  //pocet klik
+	////////////////////////////////////// HLEDANI KLIK /////////////////////////////////////////////////
+	Graph *clicques = NULL;  //pole grafu, ktere budou obsahovat uzly nacteneho grafu, ktere jsou soucasti klik
+	int numClicques = 0;  //pocet klik
 	FindCliques(graph, &clicques, &numClicques);
 
 	for (int i = 0; i < numClicques; i++) {
@@ -113,5 +147,15 @@ int main(int argc, char **argv) {
 		PrintGraph(&(clicques[i]));
 	}
 
+	////////////////////////////////////// ODALOKACE, KONEC ///////////////////////////////////////////////
+	DestroyGraph(graph); //odalokuju pamet grafu nacteneho ze souboru
+	free(graph); //odalokuje strukturu
+	graph = NULL;
+
+	for (int i = 0; i < numClicques; i++) { //odalokuju jednotlive grafy (kliky)
+		DestroyGraph(&(clicques[i]));
+	}
+	free(clicques); //odalokuju pole grafu
+	clicques = NULL;
 	return 0;
 }
