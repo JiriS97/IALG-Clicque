@@ -90,6 +90,18 @@ void DestroyGraph(Graph *graph) {
 	//free(graph);
 }
 
+/*
+int N(int vertex){
+	int c = 0;
+	Graph l = ??
+	for (?? {
+		if (i==1) c+=1;
+		return l
+	}
+}
+
+*/
+
 void FindCliques(Graph *source, Graph **foundCliques, int *numFoundCliques) {
 	//vyhleda nejvetsi kliky v grafu source a vrati je v poli foundCliques, jejich pocet ulozi do numFoundCliques
 	//Bron–Kerbosch algorithm https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm?fbclid=IwAR1LpZZxsoxn0MeqUbiZahtBIuifaBAsSLxdx7oUbqiekWcsbgwWxds-wQU
@@ -99,6 +111,32 @@ void FindCliques(Graph *source, Graph **foundCliques, int *numFoundCliques) {
 	int exampleNumNodes2 = 5;
 	int exampleNumConnections = 1;
 
+	/*
+	Graph sourceNew;
+	Graph foundCliquesNew;
+	int numFoundCliquesNew;
+
+	if ( sizeof(NumNodes1) == 0 && sizeof(NumNodes2){
+		printf(&numFoundCliques);
+	}
+	for (vertex = 0; vertex <=kdovico; vertex++){
+		foundCliquesNew = source[vertex];
+		//sourceNew.numnodes = buhvico;
+		if (source == N(vertex){
+			sourceNew = N(vertex);
+		}
+		if (numFoundCliques == N(vertex){
+			numFoundCliquesNew = N(vvertex);
+		}
+
+		free(*vertex);
+		FindCliques (sourceNew, foundCliquesNew, numFoundCliquesNew);
+
+	}
+	*/
+
+	
+	
 	(*foundCliques) = malloc(exampleNumCliques * sizeof(Graph)); //alokace poctu grafu
 	(*foundCliques)[0].nodes = calloc(exampleNumNodes1, sizeof(Node)); //alokace poctu uzlu pro prvni graf
 	(*foundCliques)[0].numNodes = exampleNumNodes1;
