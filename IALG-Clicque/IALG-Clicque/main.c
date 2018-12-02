@@ -9,7 +9,7 @@
 typedef struct Node {
 	int value;
 	int nConnections;
-	struct Node **connections;
+	int *connections;
 }Node;
 
 typedef struct Graph {
@@ -50,7 +50,7 @@ Graph* LoadGraphFromFile(FILE *f) {
 	for (int i = 0; i < numNodes; i++)
 	{
 		graph->nodes[i].nConnections = numConnections[i] + 1;
-		graph->nodes[i].connections = malloc(graph->nodes[i].nConnections * sizeof(Node*));
+		graph->nodes[i].connections = malloc(graph->nodes[i].nConnections * sizeof(int));
 	}
 	free(numConnections);
 	numConnections = NULL;
@@ -67,7 +67,7 @@ Graph* LoadGraphFromFile(FILE *f) {
 			if (j < graph->nodes[i].nConnections - 1) read = fscanf(f, "%d,", &readNodeId);
 			else read = fscanf(f, "%d", &readNodeId);
 			//printf("	Read %d values; Conn to: %d\r\n", read, readNodeId);
-			graph->nodes[i].connections[j] = &(graph->nodes[readNodeId]);
+			graph->nodes[i].connections[j] = readNodeId;
 		}
 	}
 	return graph;
@@ -88,6 +88,46 @@ void DestroyGraph(Graph *graph) {
 	}
 	free(graph->nodes); //odalokuje pole prvku
 	//free(graph);
+}
+
+Graph *FindIntersects(Graph *graphA, Graph *graphB) {
+	int numIntersects = 0;
+	
+	//prohledam oba grafy a zjistim pocet spolecnych prvku
+	for (int i = 0; i < graphA->numNodes; i++) {
+		for (int j = 0; j < graphB->numNodes; j++) {
+			if (graphA->nodes[i].value == graphB->nodes[j].value) {
+				numIntersects++;
+				break;
+			}
+		}
+	}
+
+	//ted uz vim kolik jich je, muzu naalokovat a naplnit daty
+	Graph *intersects = malloc(sizeof(Graph)); //alokace vysledku
+	intersects->numNodes = numIntersects;
+	intersects->nodes = malloc(numIntersects * sizeof(Node));
+
+	//prohledam oba grafy znova a ulozim shodne prvky
+	int currentIndex = 0;
+	for (int i = 0; i < graphA->numNodes; i++) {
+		for (int j = 0; j < graphB->numNodes; j++) {
+			if (graphA->nodes[i].value == graphB->nodes[j].value) {
+				//oba grafy obsahuji tento prvek, nakopirovat i propoje
+				intersects->nodes[currentIndex].value = graphA->nodes[i].value;
+				intersects->nodes[currentIndex].nConnections = graphA->nodes[i].nConnections;
+				intersects->nodes[currentIndex].connections = malloc(graphA->nodes[i].nConnections * sizeof(int));
+
+				for (int x = 0; x < intersects->nodes[i].nConnections; x++) {
+					intersects->nodes[currentIndex].connections[x] = graphA->nodes[i].connections[x];
+				}
+				currentIndex++;
+				break;
+			}
+		}
+	}
+	
+	return intersects;
 }
 
 /*
@@ -175,6 +215,21 @@ int main(int argc, char **argv) {
 	fclose(f); //zavru soubor, mam nacteno
 	f = NULL;
 
+	//TEST FindIntersects
+	/*
+	FILE *a = fopen("..\\..\\Test-Graph\\Graph1.txt", "r");
+	FILE *b = fopen("..\\..\\Test-Graph\\Graph2.txt", "r");
+	Graph *graphA = LoadGraphFromFile(a);
+	Graph *graphB = LoadGraphFromFile(b);
+	Graph *res = FindIntersects(graphA, graphB);
+
+	printf("\r\nA:\r\n");
+	PrintGraph(graphA);
+	printf("\r\nB:\r\n");
+	PrintGraph(graphB);
+	printf("\r\nResult:\r\n");
+	PrintGraph(res);
+	*/
 	////////////////////////////////////// HLEDANI KLIK /////////////////////////////////////////////////
 	Graph *clicques = NULL;  //pole grafu, ktere budou obsahovat uzly nacteneho grafu, ktere jsou soucasti klik
 	int numClicques = 0;  //pocet klik
