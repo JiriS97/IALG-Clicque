@@ -38,6 +38,7 @@ Graph* LoadGraphFromFile(FILE *f) {
 			{
 				alloccated += MIN_ALOKACE;
 				numConnections = realloc(numConnections, alloccated * sizeof(int)); // pokud nemam dostatek mista tak prealokuju
+				memset(&(numConnections[alloccated - MIN_ALOKACE]), 0, MIN_ALOKACE * sizeof(int));
 			}
 		}
 		if (c == ',')numConnections[numNodes - 1]++; //zjistovani poctu propoju pro dany uzel 
