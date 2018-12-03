@@ -83,8 +83,10 @@ void PrintGraph(Graph *graph) {
 void DestroyGraph(Graph *graph) {
 	//odalokuje prostor v pameti zabrany grafem
 	for (int i = 0; i < graph->numNodes; i++) {
-		free(graph->nodes[i].connections); //odalokuje pole odkazu pro kazdy prvek
-		graph->nodes[i].connections = NULL;
+		if (graph->nodes[i].nConnections) {
+			free(graph->nodes[i].connections); //odalokuje pole odkazu pro kazdy prvek
+			graph->nodes[i].connections = NULL;
+		}
 	}
 	free(graph->nodes); //odalokuje pole prvku
 	//free(graph);
@@ -116,11 +118,17 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 				//oba grafy obsahuji tento prvek, nakopirovat i propoje
 				intersects->nodes[currentIndex].value = graphA->nodes[i].value;
 				intersects->nodes[currentIndex].nConnections = graphA->nodes[i].nConnections;
-				intersects->nodes[currentIndex].connections = malloc(graphA->nodes[i].nConnections * sizeof(int));
+				if (graphA->nodes[i].nConnections) {
+					intersects->nodes[currentIndex].connections = malloc(graphA->nodes[i].nConnections * sizeof(int));
 
-				for (int x = 0; x < intersects->nodes[i].nConnections; x++) {
-					intersects->nodes[currentIndex].connections[x] = graphA->nodes[i].connections[x];
+					for (int x = 0; x < intersects->nodes[i].nConnections; x++) {
+						intersects->nodes[currentIndex].connections[x] = graphA->nodes[i].connections[x];
+					}
 				}
+				else {
+					intersects->nodes[currentIndex].connections = NULL;
+				}
+
 				currentIndex++;
 				break;
 			}
@@ -141,6 +149,155 @@ int N(int vertex){
 }
 
 */
+
+Graph *GetNeighbors(Node *node) {
+	Graph *neighbors = malloc(sizeof(Graph)); //alokace vysledku
+	neighbors->numNodes = node->nConnections;
+	neighbors->nodes = malloc(node->nConnections * sizeof(Node));
+
+	for (int i = 0; i < node->nConnections; i++) {
+		neighbors->nodes[i].nConnections = 0;
+		neighbors->nodes[i].connections = NULL;
+		neighbors->nodes[i].value = node->connections[i];
+	}
+	return neighbors;
+}
+
+Graph *Copy(Graph *toCopy) {
+	Graph *copy = malloc(sizeof(Graph)); //alokace vysledku
+	copy->numNodes = toCopy->numNodes;
+	copy->nodes = malloc((toCopy->numNodes) * sizeof(Node));
+
+	//nakopiruju graf
+	for (int i = 0; i < toCopy->numNodes; i++) {
+		copy->nodes[i].value = toCopy->nodes[i].value;
+		copy->nodes[i].nConnections = toCopy->nodes[i].nConnections;
+
+		if (toCopy->nodes[i].nConnections) {
+			copy->nodes[i].connections = malloc(toCopy->nodes[i].nConnections * sizeof(int));
+
+			for (int j = 0; j < toCopy->nodes[i].nConnections; j++) {
+				copy->nodes[i].connections[j] = toCopy->nodes[i].connections[j];
+			}
+		}
+		else {
+			copy->nodes[i].connections = NULL;
+		}
+		
+	}
+
+	return copy;
+}
+
+Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
+	Graph *copy = malloc(sizeof(Graph)); //alokace vysledku
+	copy->numNodes = toCopy->numNodes + 1;
+	copy->nodes = malloc((toCopy->numNodes + 1) * sizeof(Node));
+
+	//nakopiruju graf
+	for (int i = 0; i < toCopy->numNodes; i++) {
+		copy->nodes[i].value = toCopy->nodes[i].value;
+		copy->nodes[i].nConnections = toCopy->nodes[i].nConnections;
+
+		if (toCopy->nodes[i].nConnections) {
+			copy->nodes[i].connections = malloc(toCopy->nodes[i].nConnections * sizeof(int));
+
+			for (int j = 0; j < toCopy->nodes[i].nConnections; j++) {
+				copy->nodes[i].connections[j] = toCopy->nodes[i].connections[j];
+			}
+		}
+		else {
+			copy->nodes[i].connections = NULL;
+		}
+	}
+
+	//a pridam jeden node
+	copy->nodes[toCopy->numNodes].value = toAdd->value;
+	copy->nodes[toCopy->numNodes].nConnections = toAdd->nConnections; 
+
+	if (toAdd->nConnections) {
+		copy->nodes[toCopy->numNodes].connections = malloc(toAdd->nConnections * sizeof(int));
+
+		for (int j = 0; j < toAdd->nConnections; j++) {
+			copy->nodes[toCopy->numNodes].connections[j] = toAdd->connections[j];
+		}
+	}
+	else {
+		copy->nodes[toCopy->numNodes].connections = NULL;
+	}
+
+	return copy;
+}
+
+Graph *CreateEmptyGraph() {
+	Graph *graph = malloc(sizeof(Graph)); //alokace vysledku
+	graph->numNodes = 0;
+	graph->nodes = NULL;
+	return graph;
+}
+
+Graph *CopyAndRemove(Graph *toCopy, Node *toRemove) {
+	Graph *copy = malloc(sizeof(Graph)); //alokace vysledku
+	copy->numNodes = toCopy->numNodes - 1;
+	copy->nodes = malloc((toCopy->numNodes - 1) * sizeof(Node));
+
+	//nakopiruju graf
+	int destIndex = 0;
+	for (int i = 0; i < toCopy->numNodes; i++) {
+		if (toCopy->nodes[i].value == toRemove->value) continue;
+
+		copy->nodes[destIndex].value = toCopy->nodes[i].value;
+		copy->nodes[destIndex].nConnections = toCopy->nodes[i].nConnections;
+
+		if (toCopy->nodes[i].nConnections) {
+			copy->nodes[destIndex].connections = malloc(toCopy->nodes[i].nConnections * sizeof(int));
+			for (int j = 0; j < toCopy->nodes[i].nConnections; j++) {
+				copy->nodes[destIndex].connections[j] = toCopy->nodes[i].connections[j];
+			}
+		}
+		else {
+			copy->nodes[destIndex].connections = NULL;
+		}
+		
+		destIndex++;
+	}
+
+	return copy;
+}
+
+void BronKerbosch(Graph *r, Graph *p, Graph *x) {
+	if (p->numNodes == 0 && x->numNodes == 0) {
+		printf("\r\nKlika o delce %d:\r\n", r->numNodes);
+		PrintGraph(r);
+		return;
+	}
+
+	Graph *pCopy = Copy(p);
+	for (int i = 0; i < pCopy->numNodes; i++) {
+		Node *vertex = &(pCopy->nodes[i]);
+
+		Graph *r_new = CopyAndAdd(r, vertex);
+		Graph *neighborsOfVertex = GetNeighbors(vertex);
+
+		Graph *p_new = FindIntersects(p, neighborsOfVertex);
+		Graph *x_new = FindIntersects(x, neighborsOfVertex);
+		DestroyGraph(neighborsOfVertex);
+
+		BronKerbosch(r_new, p_new, x_new);
+		DestroyGraph(r_new);
+		DestroyGraph(p_new);
+		DestroyGraph(x_new);
+
+		Graph *p2 = CopyAndRemove(p, vertex);
+		DestroyGraph(p);
+		p = p2;
+
+		Graph *x2 = CopyAndAdd(x, vertex);
+		DestroyGraph(x);
+		x = x2;
+	}
+	DestroyGraph(pCopy);
+}
 
 void FindCliques(Graph *source, Graph **foundCliques, int *numFoundCliques) {
 	//vyhleda nejvetsi kliky v grafu source a vrati je v poli foundCliques, jejich pocet ulozi do numFoundCliques
@@ -230,6 +387,11 @@ int main(int argc, char **argv) {
 	printf("\r\nResult:\r\n");
 	PrintGraph(res);
 	*/
+
+	Graph *r_start = CreateEmptyGraph();
+	Graph *x_start = CreateEmptyGraph();
+	BronKerbosch(r_start, graph, x_start);
+
 	////////////////////////////////////// HLEDANI KLIK /////////////////////////////////////////////////
 	Graph *clicques = NULL;  //pole grafu, ktere budou obsahovat uzly nacteneho grafu, ktere jsou soucasti klik
 	int numClicques = 0;  //pocet klik
