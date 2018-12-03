@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "check.h" //nechat posledni
 #define MIN_ALOKACE 10
@@ -76,7 +77,7 @@ Graph* LoadGraphFromFile(FILE *f) {
 
 void PrintGraph(Graph *graph) {
 	//vytiskne graf jako seznam uzluuu
-	printf("Graf z %d uzly\r\n", graph->numNodes);
+	printf("Graf s %d uzly\r\n", graph->numNodes);
 	for (int i = 0; i < graph->numNodes; i++) {
 		printf(" Uzel s hodnotou %d, %d spoju: ", graph->nodes[i].value, graph->nodes[i].nConnections);
 
@@ -97,12 +98,14 @@ void DestroyGraph(Graph *graph) {
 			}
 		}
 		free(graph->nodes); //odalokuje pole prvku
+		graph->nodes = NULL;
+		graph->numNodes = 0;
 	}
 }
 
 Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 	int numIntersects = 0;
-	
+
 	//prohledam oba grafy a zjistim pocet spolecnych prvku
 	for (int i = 0; i < graphA->numNodes; i++) {
 		for (int j = 0; j < graphB->numNodes; j++) {
@@ -116,6 +119,12 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 	//ted uz vim kolik jich je, muzu naalokovat a naplnit daty
 	Graph *intersects = malloc(sizeof(Graph)); //alokace vysledku
 	intersects->numNodes = numIntersects;
+
+	if (intersects->numNodes == 0) { //nema spolecne body, nic se alokovat nebude
+		intersects->nodes = NULL;
+		return intersects;
+	}
+
 	intersects->nodes = malloc(numIntersects * sizeof(Node));
 
 	//prohledam oba grafy znova a ulozim shodne prvky
@@ -142,13 +151,19 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 			}
 		}
 	}
-	
+
 	return intersects;
 }
 
 Graph *GetNeighbors(Node *node) {
 	Graph *neighbors = malloc(sizeof(Graph)); //alokace vysledku
 	neighbors->numNodes = node->nConnections;
+
+	if (neighbors->numNodes == 0) { //nema sousedy, nic se alokovat nebude
+		neighbors->nodes = NULL;
+		return neighbors;
+	}
+
 	neighbors->nodes = malloc(node->nConnections * sizeof(Node));
 
 	for (int i = 0; i < node->nConnections; i++) {
@@ -162,6 +177,11 @@ Graph *GetNeighbors(Node *node) {
 Graph *Copy(Graph *toCopy) {
 	Graph *copy = malloc(sizeof(Graph)); //alokace vysledku
 	copy->numNodes = toCopy->numNodes;
+
+	if (copy->numNodes == 0) { //nema prvky, nic se alokovat nebude
+		copy->nodes = NULL;
+		return copy;
+	}
 	copy->nodes = malloc((toCopy->numNodes) * sizeof(Node));
 
 	//nakopiruju graf
@@ -179,7 +199,7 @@ Graph *Copy(Graph *toCopy) {
 		else {
 			copy->nodes[i].connections = NULL;
 		}
-		
+
 	}
 
 	return copy;
@@ -209,7 +229,7 @@ Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
 
 	//a pridam jeden node
 	copy->nodes[toCopy->numNodes].value = toAdd->value;
-	copy->nodes[toCopy->numNodes].nConnections = toAdd->nConnections; 
+	copy->nodes[toCopy->numNodes].nConnections = toAdd->nConnections;
 
 	if (toAdd->nConnections) {
 		copy->nodes[toCopy->numNodes].connections = malloc(toAdd->nConnections * sizeof(int));
@@ -235,6 +255,12 @@ Graph *CreateEmptyGraph() {
 Graph *CopyAndRemove(Graph *toCopy, Node *toRemove) {
 	Graph *copy = malloc(sizeof(Graph)); //alokace vysledku
 	copy->numNodes = toCopy->numNodes - 1;
+
+	if (toCopy->numNodes - 1 == 0) { //vysledny graf je prazdny
+		copy->nodes = NULL;
+		return copy;
+	}
+
 	copy->nodes = malloc((toCopy->numNodes - 1) * sizeof(Node));
 
 	//nakopiruju graf
@@ -254,17 +280,17 @@ Graph *CopyAndRemove(Graph *toCopy, Node *toRemove) {
 		else {
 			copy->nodes[destIndex].connections = NULL;
 		}
-		
+
 		destIndex++;
 	}
 
 	return copy;
 }
 
-void BronKerbosch(Graph *r, Graph *p, Graph *x) {
+void BronKerbosch(Graph *r, Graph *p, Graph *x, Graph ***clicqueDestination, int *numClicques) {
 	if (p->numNodes == 0 && x->numNodes == 0) {
-		printf("\r\nKlika o delce %d:\r\n", r->numNodes);
-		PrintGraph(r);
+		(*clicqueDestination) = realloc(*clicqueDestination, ((*numClicques) + 1) * sizeof(Graph*));
+		(*clicqueDestination)[(*numClicques)++] = Copy(r);
 		return;
 	}
 
@@ -274,12 +300,11 @@ void BronKerbosch(Graph *r, Graph *p, Graph *x) {
 
 		Graph *r_new = CopyAndAdd(r, vertex);
 		Graph *neighborsOfVertex = GetNeighbors(vertex);
-
 		Graph *p_new = FindIntersects(p, neighborsOfVertex);
 		Graph *x_new = FindIntersects(x, neighborsOfVertex);
 		DestroyGraph(neighborsOfVertex);
 
-		BronKerbosch(r_new, p_new, x_new);
+		BronKerbosch(r_new, p_new, x_new, clicqueDestination, numClicques);
 		DestroyGraph(r_new);
 		DestroyGraph(p_new);
 		DestroyGraph(x_new);
@@ -295,58 +320,18 @@ void BronKerbosch(Graph *r, Graph *p, Graph *x) {
 	DestroyGraph(pCopy);
 }
 
-void FindCliques(Graph *source, Graph **foundCliques, int *numFoundCliques) {
+void FindCliques(Graph *source, Graph ***foundCliques, int *numFoundCliques) {
 	//vyhleda nejvetsi kliky v grafu source a vrati je v poli foundCliques, jejich pocet ulozi do numFoundCliques
-	//Bron–Kerbosch algorithm https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm?fbclid=IwAR1LpZZxsoxn0MeqUbiZahtBIuifaBAsSLxdx7oUbqiekWcsbgwWxds-wQU
-	
-	int exampleNumCliques = 2;
-	int exampleNumNodes1 = 3;
-	int exampleNumNodes2 = 5;
-	int exampleNumConnections = 1;
+	//Bron-Kerbosch algorithm https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm?fbclid=IwAR1LpZZxsoxn0MeqUbiZahtBIuifaBAsSLxdx7oUbqiekWcsbgwWxds-wQU
 
-	/*
-	Graph sourceNew;
-	Graph foundCliquesNew;
-	int numFoundCliquesNew;
+	Graph *r_start = CreateEmptyGraph();
+	Graph *x_start = CreateEmptyGraph();
+	BronKerbosch(r_start, source, x_start, foundCliques, numFoundCliques);
 
-	if ( sizeof(NumNodes1) == 0 && sizeof(NumNodes2){
-		printf(&numFoundCliques);
-	}
-	for (vertex = 0; vertex <=kdovico; vertex++){
-		foundCliquesNew = source[vertex];
-		//sourceNew.numnodes = buhvico;
-		if (source == N(vertex){
-			sourceNew = N(vertex);
-		}
-		if (numFoundCliques == N(vertex){
-			numFoundCliquesNew = N(vvertex);
-		}
-
-		free(*vertex);
-		FindCliques (sourceNew, foundCliquesNew, numFoundCliquesNew);
-
-	}
-	*/
-
-	
-	
-	(*foundCliques) = malloc(exampleNumCliques * sizeof(Graph)); //alokace poctu grafu
-	(*foundCliques)[0].nodes = calloc(exampleNumNodes1, sizeof(Node)); //alokace poctu uzlu pro prvni graf
-	(*foundCliques)[0].numNodes = exampleNumNodes1;
-	for (int i = 0; i < exampleNumNodes1; i++) {
-		(*foundCliques)[0].nodes[i].nConnections = exampleNumConnections;
-		(*foundCliques)[0].nodes[i].connections = calloc(exampleNumConnections, sizeof(Node*)); //alokace poctu propoju pro kazdy uzel
-	}
-
-
-	(*foundCliques)[1].nodes = calloc(exampleNumNodes2, sizeof(Node)); //alokace poctu uzlu pro druhy graf
-	(*foundCliques)[1].numNodes = exampleNumNodes2;
-	for (int i = 0; i < exampleNumNodes2; i++) {
-		(*foundCliques)[1].nodes[i].nConnections = exampleNumConnections;
-		(*foundCliques)[1].nodes[i].connections = calloc(exampleNumConnections, sizeof(Node*)); //alokace poctu propoju pro kazdy uzel
-	}
-	
-	*numFoundCliques = exampleNumCliques;
+	DestroyGraph(r_start);
+	free(r_start);
+	DestroyGraph(x_start);
+	free(x_start);
 }
 
 int main(int argc, char **argv) {
@@ -368,34 +353,33 @@ int main(int argc, char **argv) {
 	fclose(f); //zavru soubor, mam nacteno
 	f = NULL;
 
-	//TEST FindIntersects
-	/*
-	FILE *a = fopen("..\\..\\Test-Graph\\Graph1.txt", "r");
-	FILE *b = fopen("..\\..\\Test-Graph\\Graph2.txt", "r");
-	Graph *graphA = LoadGraphFromFile(a);
-	Graph *graphB = LoadGraphFromFile(b);
-	Graph *res = FindIntersects(graphA, graphB);
+	printf("Nacteny graf ze souboru:\r\n");
+	PrintGraph(graph);
+	printf("\r\n\r\n");
 
-	printf("\r\nA:\r\n");
-	PrintGraph(graphA);
-	printf("\r\nB:\r\n");
-	PrintGraph(graphB);
-	printf("\r\nResult:\r\n");
-	PrintGraph(res);
-	*/
-
-	Graph *r_start = CreateEmptyGraph();
-	Graph *x_start = CreateEmptyGraph();
-	BronKerbosch(r_start, graph, x_start);
 
 	////////////////////////////////////// HLEDANI KLIK /////////////////////////////////////////////////
-	Graph *clicques = NULL;  //pole grafu, ktere budou obsahovat uzly nacteneho grafu, ktere jsou soucasti klik
+	Graph **clicques = NULL;  //pole grafu, ktere budou obsahovat uzly nacteneho grafu, ktere jsou soucasti klik
 	int numClicques = 0;  //pocet klik
+
 	FindCliques(graph, &clicques, &numClicques);
 
+	//zjisteni nejvetsi kliky
+	int maxClicque = 0;
 	for (int i = 0; i < numClicques; i++) {
-		printf("\r\nNalezena klika:\r\n");
-		PrintGraph(&(clicques[i]));
+		if (clicques[i]->numNodes > maxClicque) {
+			maxClicque = clicques[i]->numNodes;
+		}
+	}
+
+
+	//vypis nejvetsi kliky (nebo klik)
+	printf("\r\nGraf obsahuje celkem %d klik, nejvetsi z nich ma velikost %d:\r\n", numClicques, maxClicque);
+	for (int i = 0; i < numClicques; i++) {
+		if (clicques[i]->numNodes == maxClicque) {
+			printf("Nejvetsi klika:\r\n");
+			PrintGraph(clicques[i]);
+		}
 	}
 
 	////////////////////////////////////// ODALOKACE, KONEC ///////////////////////////////////////////////
@@ -404,7 +388,7 @@ int main(int argc, char **argv) {
 	graph = NULL;
 
 	for (int i = 0; i < numClicques; i++) { //odalokuju jednotlive grafy (kliky)
-		DestroyGraph(&(clicques[i]));
+		DestroyGraph(clicques[i]);
 	}
 	free(clicques); //odalokuju pole grafu
 	clicques = NULL;
