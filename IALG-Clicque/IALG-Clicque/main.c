@@ -76,7 +76,12 @@ Graph* LoadGraphFromFile(FILE *f) {
 void PrintGraph(Graph *graph) {
 	//vytiskne graf jako seznam uzluuu
 	for (int i = 0; i < graph->numNodes; i++) {
-		printf("Uzel s hodnotou %d\r\n", graph->nodes[i].value);
+		printf("Uzel s hodnotou %d, %d spoju: ", graph->nodes[i].value, graph->nodes[i].nConnections);
+
+		for (int j = 0; j < graph->nodes[i].nConnections; j++) {
+			printf("%d, ", graph->nodes[i].connections[j]);
+		}
+		printf("\r\n");
 	}
 }
 
