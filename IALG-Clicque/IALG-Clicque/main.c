@@ -75,8 +75,9 @@ Graph* LoadGraphFromFile(FILE *f) {
 
 void PrintGraph(Graph *graph) {
 	//vytiskne graf jako seznam uzluuu
+	printf("Graf z %d uzly\r\n", graph->numNodes);
 	for (int i = 0; i < graph->numNodes; i++) {
-		printf("Uzel s hodnotou %d, %d spoju: ", graph->nodes[i].value, graph->nodes[i].nConnections);
+		printf(" Uzel s hodnotou %d, %d spoju: ", graph->nodes[i].value, graph->nodes[i].nConnections);
 
 		for (int j = 0; j < graph->nodes[i].nConnections; j++) {
 			printf("%d, ", graph->nodes[i].connections[j]);
@@ -87,14 +88,15 @@ void PrintGraph(Graph *graph) {
 
 void DestroyGraph(Graph *graph) {
 	//odalokuje prostor v pameti zabrany grafem
-	for (int i = 0; i < graph->numNodes; i++) {
-		if (graph->nodes[i].nConnections) {
-			free(graph->nodes[i].connections); //odalokuje pole odkazu pro kazdy prvek
-			graph->nodes[i].connections = NULL;
+	if (graph->numNodes) {
+		for (int i = 0; i < graph->numNodes; i++) {
+			if (graph->nodes[i].nConnections) {
+				free(graph->nodes[i].connections); //odalokuje pole odkazu pro kazdy prvek
+				graph->nodes[i].connections = NULL;
+			}
 		}
+		free(graph->nodes); //odalokuje pole prvku
 	}
-	free(graph->nodes); //odalokuje pole prvku
-	//free(graph);
 }
 
 Graph *FindIntersects(Graph *graphA, Graph *graphB) {
@@ -126,7 +128,7 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 				if (graphA->nodes[i].nConnections) {
 					intersects->nodes[currentIndex].connections = malloc(graphA->nodes[i].nConnections * sizeof(int));
 
-					for (int x = 0; x < intersects->nodes[i].nConnections; x++) {
+					for (int x = 0; x < intersects->nodes[currentIndex].nConnections; x++) {
 						intersects->nodes[currentIndex].connections[x] = graphA->nodes[i].connections[x];
 					}
 				}
@@ -142,18 +144,6 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 	
 	return intersects;
 }
-
-/*
-int N(int vertex){
-	int c = 0;
-	Graph l = ??
-	for (?? {
-		if (i==1) c+=1;
-		return l
-	}
-}
-
-*/
 
 Graph *GetNeighbors(Node *node) {
 	Graph *neighbors = malloc(sizeof(Graph)); //alokace vysledku
