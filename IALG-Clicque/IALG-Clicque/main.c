@@ -98,7 +98,6 @@ void DestroyGraph(Graph **graph) {
 				(*graph)->nodes[i].connections = NULL;
 			}
 		}
-
 		free((*graph)->nodes); //odalokuje pole prvku
 		(*graph)->nodes = NULL;
 		(*graph)->numNodes = 0;
@@ -131,7 +130,6 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 		intersects->nodes = NULL;
 		return intersects;
 	}
-
 	intersects->nodes = malloc(numIntersects * sizeof(Node));
 
 	//prohledam oba grafy znova a ulozim shodne prvky
@@ -158,7 +156,6 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 			}
 		}
 	}
-
 	return intersects;
 }
 
@@ -212,9 +209,9 @@ Graph *Copy(Graph *toCopy) {
 		}
 
 	}
-
 	return copy;
 }
+
 
 Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
 	if (toCopy == NULL || toAdd == NULL) return NULL;
@@ -254,9 +251,9 @@ Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
 	else {
 		copy->nodes[toCopy->numNodes].connections = NULL;
 	}
-
 	return copy;
 }
+
 
 Graph *CreateEmptyGraph() {
 	Graph *graph = malloc(sizeof(Graph)); //alokace vysledku
@@ -265,6 +262,7 @@ Graph *CreateEmptyGraph() {
 	return graph;
 }
 
+/*
 Graph *CopyAndRemove(Graph *toCopy, Node *toRemove) {
 	Graph *copy = malloc(sizeof(Graph)); //alokace vysledku
 	copy->numNodes = toCopy->numNodes - 1;
@@ -293,11 +291,53 @@ Graph *CopyAndRemove(Graph *toCopy, Node *toRemove) {
 		else {
 			copy->nodes[destIndex].connections = NULL;
 		}
-
 		destIndex++;
 	}
 
 	return copy;
+}*/
+
+void RemoveFromGraph(Graph *source, Node *toRemove) {
+	//nakopiruju graf
+	int destIndex = 0;
+	for (int i = 0; i < source->numNodes; i++) {
+		if (source->nodes[i].value == toRemove->value) {
+			if (source->nodes[i].nConnections) {
+				free(source->nodes[i].connections); //odalokuje pole odkazu pro kazdy prvek
+				source->nodes[i].connections = NULL;
+				source->nodes[i].nConnections = 0;
+			}
+			continue;
+		}
+
+		source->nodes[destIndex].value = source->nodes[i].value;
+		source->nodes[destIndex].nConnections = source->nodes[i].nConnections;
+		source->nodes[destIndex].connections = source->nodes[i].connections;
+		destIndex++;
+	}
+	source->numNodes = destIndex;
+	source->nodes = realloc(source->nodes, source->numNodes * sizeof(Node));
+}
+
+void AddToGraph(Graph *source, Node *toAdd) {
+	//nakopiruju graf
+	source->numNodes++;
+	source->nodes = realloc(source->nodes, source->numNodes * sizeof(Node));
+
+	//a pridam jeden node
+	source->nodes[source->numNodes-1].value = toAdd->value;
+	source->nodes[source->numNodes - 1].nConnections = toAdd->nConnections;
+
+	if (toAdd->nConnections) {
+		source->nodes[source->numNodes - 1].connections = malloc(toAdd->nConnections * sizeof(int));
+
+		for (int i = 0; i < toAdd->nConnections; i++) {
+			source->nodes[source->numNodes - 1].connections[i] = toAdd->connections[i];
+		}
+	}
+	else {
+		source->nodes[source->numNodes - 1].connections = NULL;
+	}
 }
 
 void BronKerbosch(Graph *r, Graph *p, Graph *x, Graph ***clicqueDestination, int *numClicques) {
@@ -318,32 +358,16 @@ void BronKerbosch(Graph *r, Graph *p, Graph *x, Graph ***clicqueDestination, int
 		Graph *x_new = FindIntersects(x, neighborsOfVertex);
 		DestroyGraph(&neighborsOfVertex);
 		
-
 		BronKerbosch(r_new, p_new, x_new, clicqueDestination, numClicques);
 		DestroyGraph(&r_new);
-		
 		DestroyGraph(&p_new);
-		
 		DestroyGraph(&x_new);
-		
 
-		p2 = CopyAndRemove(p, vertex);///////////////////////////////////////////////////////////////////
-		DestroyGraph(&p);
-		
-		p = p2;
-
-		x2 = CopyAndAdd(x, vertex);//////////////////////////////////////////////////////////////////////
-		DestroyGraph(&x);
-		
-		x = x2;
+		RemoveFromGraph(p, vertex);
+		AddToGraph(x, vertex);
 	}
 
 	DestroyGraph(&pCopy);
-	
-	//DestroyGraph(&p2);
-	
-	//DestroyGraph(&x2);
-	
 }
 
 void FindCliques(Graph *source, Graph ***foundCliques, int *numFoundCliques) {
@@ -355,9 +379,7 @@ void FindCliques(Graph *source, Graph ***foundCliques, int *numFoundCliques) {
 	BronKerbosch(r_start, source, x_start, foundCliques, numFoundCliques);
 
 	DestroyGraph(&r_start);
-	
 	DestroyGraph(&x_start);
-	
 }
 
 int main(int argc, char **argv) {
@@ -410,12 +432,10 @@ int main(int argc, char **argv) {
 
 	////////////////////////////////////// ODALOKACE, KONEC ///////////////////////////////////////////////
 	DestroyGraph(&graph); //odalokuju pamet grafu nacteneho ze souboru
-	
 	graph = NULL;
 
 	for (int i = 0; i < numClicques; i++) { //odalokuju jednotlive grafy (kliky)
 		DestroyGraph(&(clicques[i]));
-		
 	}
 	free(clicques); //odalokuju pole grafu
 	clicques = NULL;
