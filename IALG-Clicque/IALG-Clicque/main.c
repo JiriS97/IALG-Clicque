@@ -25,6 +25,13 @@ printf("Nespravny format grafu");
 exit(2);
 }
 
+//osetreni alokace pameti
+void ErrorMalloc() {
+	printf("Malloc: chyba alokace pametoveho prostoru\n");
+	printf("Program nahlasil kritickou chybu a bude ukoncen");
+	exit(3);
+}
+
 Graph* LoadGraphFromFile(FILE *f) {
 	//alokace pole node podle delky nacitaneho grafu
 	//ulozeni delky grafu do numNodes
@@ -36,6 +43,7 @@ Graph* LoadGraphFromFile(FILE *f) {
 	Graph* graph;
 
 	numConnections = calloc(MIN_ALOKACE, sizeof(int));
+	if (numConnections == NULL) ErrorMalloc();
 	do
 	{
 		c = fgetc(f);
@@ -46,6 +54,7 @@ Graph* LoadGraphFromFile(FILE *f) {
 			{
 				alloccated += MIN_ALOKACE;
 				numConnections = realloc(numConnections, alloccated * sizeof(int)); // pokud nemam dostatek mista tak prealokuju
+				if (numConnections == NULL) ErrorMalloc();
 				memset(&(numConnections[alloccated - MIN_ALOKACE]), 0, MIN_ALOKACE * sizeof(int));
 			}
 		}
@@ -54,12 +63,15 @@ Graph* LoadGraphFromFile(FILE *f) {
 
 	} while (c != EOF);
 	graph = malloc(sizeof(Graph));// alokace grafu
+	if (graph == NULL) ErrorMalloc();
 	graph->numNodes = numNodes;
 	graph->nodes = malloc(numNodes * sizeof(Node));
+	if (graph->nodes == NULL) ErrorMalloc();
 	for (int i = 0; i < numNodes; i++)
 	{
 		graph->nodes[i].nConnections = numConnections[i] + 1;
 		graph->nodes[i].connections = malloc(graph->nodes[i].nConnections * sizeof(int));
+		if (graph->nodes[i].connections == NULL) ErrorMalloc();
 	}
 	free(numConnections);
 	numConnections = NULL;
@@ -137,6 +149,7 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 
 	//ted uz vim kolik jich je, muzu naalokovat a naplnit daty
 	Graph *intersects = malloc(sizeof(Graph)); //alokace vysledku
+	if (intersects == NULL) ErrorMalloc();
 	intersects->numNodes = numIntersects;
 
 	if (intersects->numNodes == 0) { //nema spolecne body, nic se alokovat nebude
@@ -144,6 +157,7 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 		return intersects;
 	}
 	intersects->nodes = malloc(numIntersects * sizeof(Node));
+	if (intersects->nodes == NULL) ErrorMalloc();
 
 	//prohledam oba grafy znova a ulozim shodne prvky
 	int currentIndex = 0;
@@ -155,6 +169,7 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 				intersects->nodes[currentIndex].nConnections = graphA->nodes[i].nConnections;
 				if (graphA->nodes[i].nConnections) {
 					intersects->nodes[currentIndex].connections = malloc(graphA->nodes[i].nConnections * sizeof(int));
+					if (intersects->nodes[currentIndex].connections == NULL) ErrorMalloc();
 
 					for (int x = 0; x < intersects->nodes[currentIndex].nConnections; x++) {
 						intersects->nodes[currentIndex].connections[x] = graphA->nodes[i].connections[x];
@@ -176,6 +191,7 @@ Graph *GetNeighbors(Node *node) {
 	if (node == NULL) return NULL;
 
 	Graph *neighbors = malloc(sizeof(Graph)); //alokace vysledku
+	if (neighbors == NULL) ErrorMalloc();
 	neighbors->numNodes = node->nConnections;
 
 	if (neighbors->numNodes == 0) { //nema sousedy, nic se alokovat nebude
@@ -184,6 +200,7 @@ Graph *GetNeighbors(Node *node) {
 	}
 
 	neighbors->nodes = malloc(node->nConnections * sizeof(Node));
+	if (neighbors->nodes == NULL) ErrorMalloc();
 
 	for (int i = 0; i < node->nConnections; i++) {
 		neighbors->nodes[i].nConnections = 0;
@@ -197,6 +214,7 @@ Graph *Copy(Graph *toCopy) {
 	if (toCopy == NULL) return NULL;
 
 	Graph *copy = malloc(sizeof(Graph)); //alokace vysledku
+	if (copy == NULL) ErrorMalloc();
 	copy->numNodes = toCopy->numNodes;
 
 	if (copy->numNodes == 0) { //nema prvky, nic se alokovat nebude
@@ -204,6 +222,7 @@ Graph *Copy(Graph *toCopy) {
 		return copy;
 	}
 	copy->nodes = malloc((toCopy->numNodes) * sizeof(Node));
+	if (copy->nodes == NULL) ErrorMalloc();
 
 	//nakopiruju graf
 	for (int i = 0; i < toCopy->numNodes; i++) {
@@ -212,6 +231,7 @@ Graph *Copy(Graph *toCopy) {
 
 		if (toCopy->nodes[i].nConnections) {
 			copy->nodes[i].connections = malloc(toCopy->nodes[i].nConnections * sizeof(int));
+			if (copy->nodes[i].connections == NULL) ErrorMalloc();
 
 			for (int j = 0; j < toCopy->nodes[i].nConnections; j++) {
 				copy->nodes[i].connections[j] = toCopy->nodes[i].connections[j];
@@ -230,8 +250,10 @@ Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
 	if (toCopy == NULL || toAdd == NULL) return NULL;
 
 	Graph *copy = malloc(sizeof(Graph)); //alokace vysledku
+	if (copy == NULL) ErrorMalloc();
 	copy->numNodes = toCopy->numNodes + 1;
 	copy->nodes = malloc((toCopy->numNodes + 1) * sizeof(Node));
+	if (copy->nodes == NULL) ErrorMalloc();
 
 	//nakopiruju graf
 	for (int i = 0; i < toCopy->numNodes; i++) {
@@ -240,6 +262,7 @@ Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
 
 		if (toCopy->nodes[i].nConnections) {
 			copy->nodes[i].connections = malloc(toCopy->nodes[i].nConnections * sizeof(int));
+			if (copy->nodes[i].connections == NULL) ErrorMalloc();
 
 			for (int j = 0; j < toCopy->nodes[i].nConnections; j++) {
 				copy->nodes[i].connections[j] = toCopy->nodes[i].connections[j];
@@ -256,6 +279,7 @@ Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
 
 	if (toAdd->nConnections) {
 		copy->nodes[toCopy->numNodes].connections = malloc(toAdd->nConnections * sizeof(int));
+		if (copy->nodes[toCopy->numNodes].connections == NULL) ErrorMalloc();
 
 		for (int j = 0; j < toAdd->nConnections; j++) {
 			copy->nodes[toCopy->numNodes].connections[j] = toAdd->connections[j];
@@ -270,6 +294,7 @@ Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
 
 Graph *CreateEmptyGraph() {
 	Graph *graph = malloc(sizeof(Graph)); //alokace vysledku
+	if (graph == NULL) ErrorMalloc();
 	graph->numNodes = 0;
 	graph->nodes = NULL;
 	return graph;
@@ -330,12 +355,14 @@ void RemoveFromGraph(Graph *source, Node *toRemove) {
 	}
 	source->numNodes = destIndex;
 	source->nodes = realloc(source->nodes, source->numNodes * sizeof(Node));
+	if ((source->numNodes !=0) && (source->nodes == NULL)) ErrorMalloc();
 }
 
 void AddToGraph(Graph *source, Node *toAdd) {
 	//nakopiruju graf
 	source->numNodes++;
 	source->nodes = realloc(source->nodes, source->numNodes * sizeof(Node));
+	if (source->nodes == NULL) ErrorMalloc();
 
 	//a pridam jeden node
 	source->nodes[source->numNodes-1].value = toAdd->value;
@@ -343,6 +370,7 @@ void AddToGraph(Graph *source, Node *toAdd) {
 
 	if (toAdd->nConnections) {
 		source->nodes[source->numNodes - 1].connections = malloc(toAdd->nConnections * sizeof(int));
+		if (source->nodes[source->numNodes - 1].connections == NULL) ErrorMalloc();
 
 		for (int i = 0; i < toAdd->nConnections; i++) {
 			source->nodes[source->numNodes - 1].connections[i] = toAdd->connections[i];
@@ -357,6 +385,7 @@ void BronKerbosch(Graph *r, Graph *p, Graph *x, Graph ***clicqueDestination, int
 	numIterations++;
 	if (p->numNodes == 0 && x->numNodes == 0) {
 		(*clicqueDestination) = realloc(*clicqueDestination, ((*numClicques) + 1) * sizeof(Graph*));
+		if (clicqueDestination == NULL) ErrorMalloc();
 		(*clicqueDestination)[(*numClicques)++] = Copy(r);
 		return;
 	}
