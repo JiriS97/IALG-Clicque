@@ -81,7 +81,6 @@ Graph* LoadGraphFromFile(FILE *f) {
 	int c;
 	int numNodes = 0; //pocet prvku
 	int *numConnections; //pocet propoju mezi uzly 
-	int numComma = 0; // pocet carek
 	int alloccated = MIN_ALOKACE;
 	Graph* graph;
 
@@ -459,7 +458,6 @@ void BronKerbosch(Graph *r, Graph *p, Graph *x, Graph ***clicqueDestination, int
 	}
 
 	Graph *pCopy = Copy(p);
-	Graph *p2 = NULL, *x2 = NULL;
 	for (int i = 0; i < pCopy->numNodes; i++) {
 		Node *vertex = &(pCopy->nodes[i]);
 
