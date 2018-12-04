@@ -560,6 +560,6 @@ int main(int argc, char **argv) {
 	free(clicques); //Odalukuji pole grafů
 	clicques = NULL;
 
-	printf("%d iteraci B-k\r\n", numIterations);
+	printf("\r\nPocet iteraci algoritmu Bron-Kerbosch: %d\r\n", numIterations);
 	return 0;
 }
