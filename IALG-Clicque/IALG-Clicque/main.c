@@ -10,7 +10,7 @@
  * 
  * Zadání projektu:
  *  Klika grafu je podgraf, který je úplným grafem. 
- *  Kterýkoliv vrchol kliky je tedy spojen hranou se všemi ostatními vrcholy kliky. 
+ *  Kterýkoliv prvek kliky je spojen se všemi ostatními vrcholy kliky. 
  *  Vytvořte program pro hledání největší kliky v neorientovaném grafu. Pokud existuje více řešení,
  *  nalezněte všechna. Výsledky prezentujte vhodným způsobem. Součástí projektu bude načítání grafů
  *  ze souboru a vhodné testovací grafy. V dokumentaci uveďte teoretickou složitost úlohy a porovnejte ji
@@ -24,13 +24,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "check.h" //pro kontrolu dynamické paměti
+#include "check.h" //Hlavičkový soubor pro kontrolu dynamické paměti
 
-#define MIN_ALOKACE 10 ///< minimální velikost alokace při načítání grafu
+#define MIN_ALOKACE 10 ///< Minimální velikost alokace při načítání grafu
 
 
 /**
- * @brief Struktura popisujíjí obsah každého uzlu grafu
+ * @brief Struktura popisující obsah každého uzlu grafu
  * 
  */
 typedef struct Node {
@@ -76,11 +76,11 @@ void ErrorMalloc() {
  * @return Graph* 	Výsledný graf
  */
 Graph* LoadGraphFromFile(FILE *f) {
-	//alokace pole node podle delky nacitaneho grafu
-	//ulozeni delky grafu do numNodes
+	//Alokace pole node podle délky načítaného grafu
+	//Uložení délky grafu do numNodes
 	int c;
-	int numNodes = 0; //pocet prvku
-	int *numConnections; //pocet propoju mezi uzly 
+	int numNodes = 0; //Počet prvků
+	int *numConnections; //Počet propojů mezi uzly 
 	int alloccated = MIN_ALOKACE;
 	Graph* graph;
 
@@ -89,22 +89,22 @@ Graph* LoadGraphFromFile(FILE *f) {
 	do
 	{
 		c = fgetc(f);
-		if (c == ':') //zjistovani poctu uzlu pomoci dvojtecky
+		if (c == ':') //Zjišťování počtu uzlů pomocí dvojtečky
 		{
 			numNodes++;
 			if (numNodes == alloccated)
 			{
 				alloccated += MIN_ALOKACE;
-				numConnections = realloc(numConnections, alloccated * sizeof(int)); // pokud nemam dostatek mista tak prealokuju
+				numConnections = realloc(numConnections, alloccated * sizeof(int)); // Pokud nemám dostatek místa, tak přealokuju
 				if (numConnections == NULL) ErrorMalloc();
 				memset(&(numConnections[alloccated - MIN_ALOKACE]), 0, MIN_ALOKACE * sizeof(int));
 			}
 		}
-		if (c == ',')numConnections[numNodes - 1]++; //zjistovani poctu propoju pro dany uzel 
+		if (c == ',')numConnections[numNodes - 1]++; //Zjišťování počtu propojů pro daný uzel 
 
 
 	} while (c != EOF);
-	graph = malloc(sizeof(Graph));// alokace grafu
+	graph = malloc(sizeof(Graph));// Alokace grafu
 	if (graph == NULL) ErrorMalloc();
 	graph->numNodes = numNodes;
 	graph->nodes = malloc(numNodes * sizeof(Node));
@@ -119,7 +119,7 @@ Graph* LoadGraphFromFile(FILE *f) {
 	numConnections = NULL;
 
 	rewind(f);
-	//Prochazeni souboru a naplneni jiz naalokovaneho prostoru
+	//Procházení souboru a naplnění již naalokovaného prostoru
 	for (int i = 0; i < graph->numNodes; i++) {
 		int read = fscanf(f, "%d:", &(graph->nodes[i].value));
 		if (read < 1){
@@ -167,11 +167,11 @@ void DestroyGraph(Graph **graph) {
 	if ((*graph)->numNodes) {
 		for (int i = 0; i < (*graph)->numNodes; i++) {
 			if ((*graph)->nodes[i].nConnections) {
-				free((*graph)->nodes[i].connections); //odalokuje pole odkazu pro kazdy prvek
+				free((*graph)->nodes[i].connections); //Odalokuje pole odkazů pro každý prvek
 				(*graph)->nodes[i].connections = NULL;
 			}
 		}
-		free((*graph)->nodes); //odalokuje pole prvku
+		free((*graph)->nodes); //Odalokuje pole prvků
 		(*graph)->nodes = NULL;
 		(*graph)->numNodes = 0;
 
@@ -192,7 +192,7 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 	if (graphA == NULL || graphB == NULL) return NULL;
 	int numIntersects = 0;
 
-	//prohledam oba grafy a zjistim pocet spolecnych prvku
+	//Prohledám oba grafy a zjistím počet společných prvků
 	for (int i = 0; i < graphA->numNodes; i++) {
 		for (int j = 0; j < graphB->numNodes; j++) {
 			if (graphA->nodes[i].value == graphB->nodes[j].value) {
