@@ -24,13 +24,13 @@ var indexSectionNames =
 
 var indexSectionLabels =
 {
-  0: "All",
-  1: "Classes",
-  2: "Files",
-  3: "Functions",
-  4: "Variables",
-  5: "Typedefs",
-  6: "Macros",
-  7: "Pages"
+  0: "Vše",
+  1: "Třídy",
+  2: "Soubory",
+  3: "Funkce",
+  4: "Proměnné",
+  5: "Definice typů",
+  6: "Definice maker",
+  7: "Stránky"
 };
 
