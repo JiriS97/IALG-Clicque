@@ -202,24 +202,24 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 		}
 	}
 
-	//ted uz vim kolik jich je, muzu naalokovat a naplnit daty
-	Graph *intersects = malloc(sizeof(Graph)); //alokace vysledku
+	//Teď už vím, kolik bude prvků, mohu provést alokaci
+	Graph *intersects = malloc(sizeof(Graph)); //Alokace grafu
 	if (intersects == NULL) ErrorMalloc();
 	intersects->numNodes = numIntersects;
 
-	if (intersects->numNodes == 0) { //nema spolecne body, nic se alokovat nebude
+	if (intersects->numNodes == 0) { //Grafy nemají společné body
 		intersects->nodes = NULL;
 		return intersects;
 	}
 	intersects->nodes = malloc(numIntersects * sizeof(Node));
 	if (intersects->nodes == NULL) ErrorMalloc();
 
-	//prohledam oba grafy znova a ulozim shodne prvky
+	//Prohledám znovu grafy a zkopíruji společné prvky
 	int currentIndex = 0;
 	for (int i = 0; i < graphA->numNodes; i++) {
 		for (int j = 0; j < graphB->numNodes; j++) {
 			if (graphA->nodes[i].value == graphB->nodes[j].value) {
-				//oba grafy obsahuji tento prvek, nakopirovat i propoje
+				//Oba grafy obsahují tento prvek, nakopíruji i propoje
 				intersects->nodes[currentIndex].value = graphA->nodes[i].value;
 				intersects->nodes[currentIndex].nConnections = graphA->nodes[i].nConnections;
 				if (graphA->nodes[i].nConnections) {
@@ -251,11 +251,11 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 Graph *GetNeighbors(Node *node) {
 	if (node == NULL) return NULL;
 
-	Graph *neighbors = malloc(sizeof(Graph)); //alokace vysledku
+	Graph *neighbors = malloc(sizeof(Graph)); //Alokace výsledku
 	if (neighbors == NULL) ErrorMalloc();
 	neighbors->numNodes = node->nConnections;
 
-	if (neighbors->numNodes == 0) { //nema sousedy, nic se alokovat nebude
+	if (neighbors->numNodes == 0) { //Uzel nemá sousedy, netřeba alokovat
 		neighbors->nodes = NULL;
 		return neighbors;
 	}
@@ -280,18 +280,18 @@ Graph *GetNeighbors(Node *node) {
 Graph *Copy(Graph *toCopy) {
 	if (toCopy == NULL) return NULL;
 
-	Graph *copy = malloc(sizeof(Graph)); //alokace vysledku
+	Graph *copy = malloc(sizeof(Graph)); //Alokace výsledku
 	if (copy == NULL) ErrorMalloc();
 	copy->numNodes = toCopy->numNodes;
 
-	if (copy->numNodes == 0) { //nema prvky, nic se alokovat nebude
+	if (copy->numNodes == 0) { //Nemá prvky, netřeba alokovat
 		copy->nodes = NULL;
 		return copy;
 	}
 	copy->nodes = malloc((toCopy->numNodes) * sizeof(Node));
 	if (copy->nodes == NULL) ErrorMalloc();
 
-	//nakopiruju graf
+	//Nakopíruji graf
 	for (int i = 0; i < toCopy->numNodes; i++) {
 		copy->nodes[i].value = toCopy->nodes[i].value;
 		copy->nodes[i].nConnections = toCopy->nodes[i].nConnections;
@@ -328,7 +328,7 @@ Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
 	copy->nodes = malloc((toCopy->numNodes + 1) * sizeof(Node));
 	if (copy->nodes == NULL) ErrorMalloc();
 
-	//nakopiruju graf
+	//Nakopíruji graf...
 	for (int i = 0; i < toCopy->numNodes; i++) {
 		copy->nodes[i].value = toCopy->nodes[i].value;
 		copy->nodes[i].nConnections = toCopy->nodes[i].nConnections;
@@ -346,7 +346,7 @@ Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
 		}
 	}
 
-	//a pridam jeden node
+	//...A přidám uzel
 	copy->nodes[toCopy->numNodes].value = toAdd->value;
 	copy->nodes[toCopy->numNodes].nConnections = toAdd->nConnections;
 
@@ -386,25 +386,25 @@ Graph *CreateEmptyGraph() {
  * @param toRemove 	Uzel, který se má odstranit
  */
 void RemoveFromGraph(Graph *source, Node *toRemove) {
-	//nakopiruju graf
+	//Projdu celý graf...
 	int destIndex = 0;
 	for (int i = 0; i < source->numNodes; i++) {
-		if (source->nodes[i].value == toRemove->value) {
+		if (source->nodes[i].value == toRemove->value) { //Pokud najdu prvek, který mám odstranit,
 			if (source->nodes[i].nConnections) {
-				free(source->nodes[i].connections); //odalokuje pole odkazu pro kazdy prvek
+				free(source->nodes[i].connections); //tak ho odstraním a uvolním po něm paměť
 				source->nodes[i].connections = NULL;
 				source->nodes[i].nConnections = 0;
 			}
 			continue;
 		}
-
+		//Jinak uzel i jeho propoje přesunu
 		source->nodes[destIndex].value = source->nodes[i].value;
 		source->nodes[destIndex].nConnections = source->nodes[i].nConnections;
 		source->nodes[destIndex].connections = source->nodes[i].connections;
 		destIndex++;
 	}
 	source->numNodes = destIndex;
-	source->nodes = realloc(source->nodes, source->numNodes * sizeof(Node));
+	source->nodes = realloc(source->nodes, source->numNodes * sizeof(Node)); //Přealokuji graf po odstranění uzlu
 	if ((source->numNodes !=0) && (source->nodes == NULL)) ErrorMalloc();
 }
 
