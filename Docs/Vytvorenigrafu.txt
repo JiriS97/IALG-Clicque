@@ -1,13 +1,13 @@
-Vytvoreni grafu
-Graf vytvorime tak ze nejdrive napiseme jmeno uzlu(zaciname nultym a pokracujeme postupne) a pote vsechny jeho uzly se kterymi je spojen.
-(nulty uzel)jack- amy, erin
-(prvni uzel)amy- jack, erin
-(druhy uzel)erin- sally, amy, jack
-(treti uzel)sally-erin
-(ctvrty uzel)...
+Vytvoření grafu
+Graf vytvoříme tak že nejdříve napíšeme jméno uzlu číslem(začínáme nultým a pokračujeme postupně) a pote všechny jeho uzly se kterými je spojen.
+0:4,1
+1:4,0,2
+2:1,3
+3:5,4,2
+4:...
 .
 .
 .
 .
 
-Soubor musi byt ulozen s priponou .txt
+Soubor musi byt ulozen s priponou .txt. Soubor nesmí být uložen s kódováním UTF8 with BOM.
