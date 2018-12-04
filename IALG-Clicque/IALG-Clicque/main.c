@@ -19,6 +19,11 @@ typedef struct Graph {
 }Graph;
 
 int numIterations = 0;
+//osetreni spatnych znaku v grafu
+void ErrorLoad(){
+printf("Nespravny format grafu");
+exit(2);
+}
 
 Graph* LoadGraphFromFile(FILE *f) {
 	//alokace pole node podle delky nacitaneho grafu
@@ -63,6 +68,9 @@ Graph* LoadGraphFromFile(FILE *f) {
 	//prochazeni souboru a naplneni jiz naalokovaneho prostoru
 	for (int i = 0; i < graph->numNodes; i++) {
 		int read = fscanf(f, "%d:", &(graph->nodes[i].value));
+		if (read < 1){
+			ErrorLoad();
+		}
 		//printf("Read %d values; Node id: %d\r\n", read, graph->nodes[i].value);
 
 		for (int j = 0; j < graph->nodes[i].nConnections; j++) {
@@ -70,6 +78,9 @@ Graph* LoadGraphFromFile(FILE *f) {
 			int read;
 			if (j < graph->nodes[i].nConnections - 1) read = fscanf(f, "%d,", &readNodeId);
 			else read = fscanf(f, "%d", &readNodeId);
+			if (read < 1) {
+				ErrorLoad();
+			}
 			//printf("	Read %d values; Conn to: %d\r\n", read, readNodeId);
 			graph->nodes[i].connections[j] = readNodeId;
 		}
