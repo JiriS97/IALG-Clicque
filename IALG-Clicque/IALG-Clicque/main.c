@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <time.h>
 #include "check.h" //nechat posledni
 #define MIN_ALOKACE 10
 
@@ -17,6 +18,8 @@ typedef struct Graph {
 	Node *nodes;
 	int numNodes;
 }Graph;
+
+int numIterations = 0;
 
 Graph* LoadGraphFromFile(FILE *f) {
 	//alokace pole node podle delky nacitaneho grafu
@@ -341,6 +344,7 @@ void AddToGraph(Graph *source, Node *toAdd) {
 }
 
 void BronKerbosch(Graph *r, Graph *p, Graph *x, Graph ***clicqueDestination, int *numClicques) {
+	numIterations++;
 	if (p->numNodes == 0 && x->numNodes == 0) {
 		(*clicqueDestination) = realloc(*clicqueDestination, ((*numClicques) + 1) * sizeof(Graph*));
 		(*clicqueDestination)[(*numClicques)++] = Copy(r);
@@ -383,6 +387,8 @@ void FindCliques(Graph *source, Graph ***foundCliques, int *numFoundCliques) {
 }
 
 int main(int argc, char **argv) {
+	clock_t start, end;
+	start = clock();
 	//////////////////////////////// INICIALIZACE, NACTENI ZE SOUBORU ////////////////////////////////
 	Graph *graph;
 
@@ -439,5 +445,9 @@ int main(int argc, char **argv) {
 	}
 	free(clicques); //odalokuju pole grafu
 	clicques = NULL;
+
+	end = clock();
+	printf("%f vterin\r\n", ((double)(end - start)) / CLOCKS_PER_SEC);
+	printf("%d iteraci B-k\r\n", numIterations);
 	return 0;
 }
