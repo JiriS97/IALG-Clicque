@@ -31,7 +31,7 @@ BronKerbosch(R, P, X):
     for each vertex v in P:
         BronKerbosch(R ⋃ {v}, P ⋂ N(v), X ⋂ N(v))
         P := P \ {v}
-       X := X ⋃ {v}
+        X := X ⋃ {v}
 \endcode
 Počáteční volání se provádí s prázdným grafem (seznamem uzlů) R a X. Parametr P obsahuje graf, ve kterém se mají hledat kliky. Při každém dalším rekurzivním volání projde algoritmus všechny uzly grafu {v} v P. Pokud je P prázdné a zároveň je prázdné i X, tak nahlásí kliku. V případě že je prázdné pouze P vrátíme se v algoritmu. Jinak proběhne rekurzivní volání, kdy je aktuální prvek {v} přidán k R, P a X jsou omezené na sousední uzly {v}. Tím se zajistí nalezení všech rozšířených klik R, které obsahují prvek {v}. Následně se přesune prvek {v} z P do X, čímž se vyloučí z dalších hledání. Algoritmus pokračuje dalším uzlem {v} z P.
 
