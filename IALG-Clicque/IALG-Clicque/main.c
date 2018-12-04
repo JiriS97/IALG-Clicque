@@ -1,11 +1,32 @@
-#define _CRT_SECURE_NO_WARNINGS //nechat prvni
+/**
+ * @file main.c
+ * @author Jiří Šrámek, Matěj Kroulík, Tomáš Macko, Jiří Bekr
+ * @version 1.1
+ * @date 2018-12-04
+ * @copyright Copyright (c) 2018
+ * @note Zpracováno v rámci předmětu IALG, projekt č.8: Největší klika v neorientovaném grafu
+ * 
+ * @brief Tento soubor implementuje Bron-Kerbosch algoritmus pro hledání klik v grafu
+ * 
+ * Zadání projektu:
+ *  Klika grafu je podgraf, který je úplným grafem. 
+ *  Kterýkoliv vrchol kliky je tedy spojen hranou se všemi ostatními vrcholy kliky. 
+ *  Vytvořte program pro hledání největší kliky v neorientovaném grafu. Pokud existuje více řešení,
+ *  nalezněte všechna. Výsledky prezentujte vhodným způsobem. Součástí projektu bude načítání grafů
+ *  ze souboru a vhodné testovací grafy. V dokumentaci uveďte teoretickou složitost úlohy a porovnejte ji
+ *  s experimentálními výsledky.
+ * 
+ */
+
+#define _CRT_SECURE_NO_WARNINGS ///< scanf, printf warning ve VS
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "check.h" //nechat posledni
-#define MIN_ALOKACE 10
+#include "check.h" ///< pro kontrolu dynamické paměti
+
+#define MIN_ALOKACE 10 ///< minimální velikost alokace při načítání grafu
 
 
 //Struktura popisujici obsah kazdeho Node = prvku v grafu
@@ -89,7 +110,6 @@ Graph* LoadGraphFromFile(FILE *f) {
 		if (read < 1){
 			ErrorLoad();
 		}
-		//printf("Read %d values; Node id: %d\r\n", read, graph->nodes[i].value);
 
 		for (int j = 0; j < graph->nodes[i].nConnections; j++) {
 			int readNodeId;
@@ -99,7 +119,6 @@ Graph* LoadGraphFromFile(FILE *f) {
 			if (read < 1) {
 				ErrorLoad();
 			}
-			//printf("	Read %d values; Conn to: %d\r\n", read, readNodeId);
 			graph->nodes[i].connections[j] = readNodeId;
 		}
 	}
@@ -305,41 +324,6 @@ Graph *CreateEmptyGraph() {
 	graph->nodes = NULL;
 	return graph;
 }
-
-/*
-Graph *CopyAndRemove(Graph *toCopy, Node *toRemove) {
-	Graph *copy = malloc(sizeof(Graph)); //alokace vysledku
-	copy->numNodes = toCopy->numNodes - 1;
-
-	if (copy->numNodes == 0) { //vysledny graf je prazdny
-		copy->nodes = NULL;
-		return copy;
-	}
-
-	copy->nodes = malloc((toCopy->numNodes - 1) * sizeof(Node));
-
-	//nakopiruju graf
-	int destIndex = 0;
-	for (int i = 0; i < toCopy->numNodes; i++) {
-		if (toCopy->nodes[i].value == toRemove->value) continue;
-
-		copy->nodes[destIndex].value = toCopy->nodes[i].value;
-		copy->nodes[destIndex].nConnections = toCopy->nodes[i].nConnections;
-
-		if (toCopy->nodes[i].nConnections) {
-			copy->nodes[destIndex].connections = malloc(toCopy->nodes[i].nConnections * sizeof(int));
-			for (int j = 0; j < toCopy->nodes[i].nConnections; j++) {
-				copy->nodes[destIndex].connections[j] = toCopy->nodes[i].connections[j];
-			}
-		}
-		else {
-			copy->nodes[destIndex].connections = NULL;
-		}
-		destIndex++;
-	}
-
-	return copy;
-}*/
 
 void RemoveFromGraph(Graph *source, Node *toRemove) {
 	//nakopiruju graf
