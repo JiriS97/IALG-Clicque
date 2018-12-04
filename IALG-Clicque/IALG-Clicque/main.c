@@ -7,18 +7,22 @@
 #include "check.h" //nechat posledni
 #define MIN_ALOKACE 10
 
+
+//Struktura popisujici obsah kazdeho Node = prvku v grafu
 typedef struct Node {
 	int value;
 	int nConnections;
 	int *connections;
 }Node;
 
+//Struktura Graph obsahujici Nody
 typedef struct Graph {
 	Node *nodes;
 	int numNodes;
 }Graph;
 
-int numIterations = 0;
+int numIterations = 0;//Pocet iteraci programu, zalozeni promenne
+
 //osetreni spatnych znaku v grafu
 void ErrorLoad(){
 printf("Nespravny format grafu");
@@ -32,6 +36,8 @@ void ErrorMalloc() {
 	exit(3);
 }
 
+//Funkce pro nacteni dat ze souboru predaneho pres parametr exe souboru
+//Funkce navraci vnitrni promennou graph typu Graph
 Graph* LoadGraphFromFile(FILE *f) {
 	//alokace pole node podle delky nacitaneho grafu
 	//ulozeni delky grafu do numNodes
@@ -77,7 +83,7 @@ Graph* LoadGraphFromFile(FILE *f) {
 	numConnections = NULL;
 
 	rewind(f);
-	//prochazeni souboru a naplneni jiz naalokovaneho prostoru
+	//Prochazeni souboru a naplneni jiz naalokovaneho prostoru
 	for (int i = 0; i < graph->numNodes; i++) {
 		int read = fscanf(f, "%d:", &(graph->nodes[i].value));
 		if (read < 1){
@@ -100,8 +106,8 @@ Graph* LoadGraphFromFile(FILE *f) {
 	return graph;
 }
 
+//Vytiskne graf na obrazovku jako seznam uzlu
 void PrintGraph(Graph *graph) {
-	//vytiskne graf jako seznam uzluuu
 	printf("Graf s %d uzly\r\n", graph->numNodes);
 	for (int i = 0; i < graph->numNodes; i++) {
 		printf(" Uzel s hodnotou %d, %d spoju: ", graph->nodes[i].value, graph->nodes[i].nConnections);
@@ -113,8 +119,8 @@ void PrintGraph(Graph *graph) {
 	}
 }
 
+//Odalokuje prostor v pameti zabrany grafem
 void DestroyGraph(Graph **graph) {
-	//odalokuje prostor v pameti zabrany grafem
 	if (*graph == NULL) return;
 	if ((*graph)->numNodes) {
 		for (int i = 0; i < (*graph)->numNodes; i++) {
@@ -381,6 +387,7 @@ void AddToGraph(Graph *source, Node *toAdd) {
 	}
 }
 
+//Funkce implementujici Bron-Kerboschuv algoritmus pro hledani klik (clique) v grafu
 void BronKerbosch(Graph *r, Graph *p, Graph *x, Graph ***clicqueDestination, int *numClicques) {
 	numIterations++;
 	if (p->numNodes == 0 && x->numNodes == 0) {
@@ -413,10 +420,9 @@ void BronKerbosch(Graph *r, Graph *p, Graph *x, Graph ***clicqueDestination, int
 	DestroyGraph(&pCopy);
 }
 
+//vyhleda nejvetsi kliky v grafu source a vrati je v poli foundCliques, jejich pocet ulozi do numFoundCliques
+//Bron-Kerbosch algorithm https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm?fbclid=IwAR1LpZZxsoxn0MeqUbiZahtBIuifaBAsSLxdx7oUbqiekWcsbgwWxds-wQU
 void FindCliques(Graph *source, Graph ***foundCliques, int *numFoundCliques) {
-	//vyhleda nejvetsi kliky v grafu source a vrati je v poli foundCliques, jejich pocet ulozi do numFoundCliques
-	//Bron-Kerbosch algorithm https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm?fbclid=IwAR1LpZZxsoxn0MeqUbiZahtBIuifaBAsSLxdx7oUbqiekWcsbgwWxds-wQU
-
 	Graph *r_start = CreateEmptyGraph();
 	Graph *x_start = CreateEmptyGraph();
 	BronKerbosch(r_start, source, x_start, foundCliques, numFoundCliques);
