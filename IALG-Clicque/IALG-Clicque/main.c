@@ -415,12 +415,12 @@ void RemoveFromGraph(Graph *source, Node *toRemove) {
  * @param toAdd 	Uzel, který se má přidat
  */
 void AddToGraph(Graph *source, Node *toAdd) {
-	//nakopiruju graf
+	//K velikosti naalokovaného grafu přidám ještě místo na jeden uzel
 	source->numNodes++;
 	source->nodes = realloc(source->nodes, source->numNodes * sizeof(Node));
 	if (source->nodes == NULL) ErrorMalloc();
 
-	//a pridam jeden node
+	//Vložím jeden uzel
 	source->nodes[source->numNodes-1].value = toAdd->value;
 	source->nodes[source->numNodes - 1].nConnections = toAdd->nConnections;
 
@@ -457,13 +457,13 @@ void BronKerbosch(Graph *r, Graph *p, Graph *x, Graph ***clicqueDestination, int
 		return;
 	}
 
-	Graph *pCopy = Copy(p);
+	Graph *pCopy = Copy(p); // Udělám kopii p
 	for (int i = 0; i < pCopy->numNodes; i++) {
 		Node *vertex = &(pCopy->nodes[i]);
 
-		Graph *r_new = CopyAndAdd(r, vertex);//////////////////////////////////////////////////
+		Graph *r_new = CopyAndAdd(r, vertex);
 		Graph *neighborsOfVertex = GetNeighbors(vertex);
-		Graph *p_new = FindIntersects(p, neighborsOfVertex);
+		Graph *p_new = FindIntersects(p, neighborsOfVertex);// Udělám prusečíky p a sousedů vertex
 		Graph *x_new = FindIntersects(x, neighborsOfVertex);
 		DestroyGraph(&neighborsOfVertex);
 		
@@ -503,11 +503,11 @@ void FindCliques(Graph *source, Graph ***foundCliques, int *numFoundCliques) {
  * @return int 	Návratová hodnota programu
  */
 int main(int argc, char **argv) {
-	//////////////////////////////// INICIALIZACE, NACTENI ZE SOUBORU ////////////////////////////////
+	//////////////////////////////// INICIALIZACE, NAČTENÍ ZE SOUBORU ////////////////////////////////
 	Graph *graph;
 
 	if (argc != 2) {
-		fprintf(stderr, "Tento program se spousti s jednim parametrem, kterym je nazev souboru s grafem!\r\n");
+		fprintf(stderr, "Tento program se spousti s jednim parametrem, kterym je nazev souboru s grafem!\r\n"); 
 		return 1;
 	}
 
@@ -518,7 +518,7 @@ int main(int argc, char **argv) {
 	}
 
 	graph = LoadGraphFromFile(f);
-	fclose(f); //zavru soubor, mam nacteno
+	fclose(f); //Mám načteno, zavřu soubor
 	f = NULL;
 
 	printf("Nacteny graf ze souboru:\r\n");
@@ -526,13 +526,13 @@ int main(int argc, char **argv) {
 	printf("\r\n\r\n");
 
 
-	////////////////////////////////////// HLEDANI KLIK /////////////////////////////////////////////////
-	Graph **clicques = NULL;  //pole grafu, ktere budou obsahovat uzly nacteneho grafu, ktere jsou soucasti klik
-	int numClicques = 0;  //pocet klik
+	////////////////////////////////////// HLEDÁNÍ KLIKY /////////////////////////////////////////////////
+	Graph **clicques = NULL;  //Pole grafů, které bude obsahovat všechny uzly načteného grafu
+	int numClicques = 0;  //Počet klik
 
 	FindCliques(graph, &clicques, &numClicques);
 
-	//zjisteni nejvetsi kliky
+	//Zjistím největší kliku grafu
 	int maxClicque = 0;
 	for (int i = 0; i < numClicques; i++) {
 		if (clicques[i]->numNodes > maxClicque) {
@@ -541,7 +541,7 @@ int main(int argc, char **argv) {
 	}
 
 
-	//vypis nejvetsi kliky (nebo klik)
+	//Vypíšu největší klliku grafu
 	printf("\r\nGraf obsahuje celkem %d klik, nejvetsi z nich ma velikost %d:\r\n", numClicques, maxClicque);
 	for (int i = 0; i < numClicques; i++) {
 		if (clicques[i]->numNodes == maxClicque) {
@@ -551,13 +551,13 @@ int main(int argc, char **argv) {
 	}
 
 	////////////////////////////////////// ODALOKACE, KONEC ///////////////////////////////////////////////
-	DestroyGraph(&graph); //odalokuju pamet grafu nacteneho ze souboru
+	DestroyGraph(&graph); //Odalokuji pamět grafu načteného ze souboru
 	graph = NULL;
 
-	for (int i = 0; i < numClicques; i++) { //odalokuju jednotlive grafy (kliky)
+	for (int i = 0; i < numClicques; i++) { //Odalukuji jednotlivé grafy(kliky)
 		DestroyGraph(&(clicques[i]));
 	}
-	free(clicques); //odalokuju pole grafu
+	free(clicques); //Odalukuji pole grafů
 	clicques = NULL;
 
 	printf("%d iteraci B-k\r\n", numIterations);
