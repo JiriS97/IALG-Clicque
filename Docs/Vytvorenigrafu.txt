@@ -1,4 +1,4 @@
-Vytvoření grafu
+﻿Tento soubor slouží jako šablona pro vytvoření grafu
 Graf vytvoříme tak že nejdříve napíšeme jméno uzlu číslem(začínáme nultým a pokračujeme postupně) a pote všechny jeho uzly se kterými je spojen.
 0:4,1
 1:4,0,2
@@ -9,5 +9,5 @@ Graf vytvoříme tak že nejdříve napíšeme jméno uzlu číslem(začínáme 
 .
 .
 .
-
 Soubor musi byt ulozen s priponou .txt. Soubor nesmí být uložen s kódováním UTF8 with BOM.
+!! PO NAPSÁNÍ VLASTNÍHO GRAFU PROSÍM SMAŽTE VEŠKERÝ DOPŇKOVÝ TEXT ZDE !!

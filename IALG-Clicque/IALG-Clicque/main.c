@@ -24,41 +24,57 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "check.h" ///< pro kontrolu dynamické paměti
+#include "check.h" //pro kontrolu dynamické paměti
 
 #define MIN_ALOKACE 10 ///< minimální velikost alokace při načítání grafu
 
 
-//Struktura popisujici obsah kazdeho Node = prvku v grafu
+/**
+ * @brief Struktura popisujíjí obsah každého uzlu grafu
+ * 
+ */
 typedef struct Node {
-	int value;
-	int nConnections;
-	int *connections;
+	int value; ///< Hodnota uzlu
+	int nConnections; ///< Počet propojů
+	int *connections; ///< Pole hodnot uzlů, na které jsou propoje (seznam propojů)
 }Node;
 
-//Struktura Graph obsahujici Nody
+/**
+ * @brief Struktura popisující graf
+ * 
+ */
 typedef struct Graph {
-	Node *nodes;
-	int numNodes;
+	Node *nodes; ///< Pole uzlů grafu
+	int numNodes; ///< Počet uzlů v grafu
 }Graph;
 
-int numIterations = 0;//Pocet iteraci programu, zalozeni promenne
+int numIterations = 0; ///< Počet iterací hlavního algoritmu
 
-//osetreni spatnych znaku v grafu
+/**
+ * @brief Funkce ošetřující chybu při načítání grafu ze souboru
+ * 
+ */
 void ErrorLoad(){
 printf("Nespravny format grafu");
 exit(2);
 }
 
-//osetreni alokace pameti
+/**
+ * @brief Funkce ošetřující chybu při alokaci paměti
+ * 
+ */
 void ErrorMalloc() {
 	printf("Malloc: chyba alokace pametoveho prostoru\n");
 	printf("Program nahlasil kritickou chybu a bude ukoncen");
 	exit(3);
 }
 
-//Funkce pro nacteni dat ze souboru predaneho pres parametr exe souboru
-//Funkce navraci vnitrni promennou graph typu Graph
+/**
+ * @brief Načítá graf ze souboru
+ * 
+ * @param f 		Soubor pro načtení
+ * @return Graph* 	Výsledný graf
+ */
 Graph* LoadGraphFromFile(FILE *f) {
 	//alokace pole node podle delky nacitaneho grafu
 	//ulozeni delky grafu do numNodes
@@ -125,7 +141,11 @@ Graph* LoadGraphFromFile(FILE *f) {
 	return graph;
 }
 
-//Vytiskne graf na obrazovku jako seznam uzlu
+/**
+ * @brief Tiskne graf včetně všech uzlů a propojů
+ * 
+ * @param graph 	Graf pro vytisknutí
+ */
 void PrintGraph(Graph *graph) {
 	printf("Graf s %d uzly\r\n", graph->numNodes);
 	for (int i = 0; i < graph->numNodes; i++) {
@@ -138,7 +158,11 @@ void PrintGraph(Graph *graph) {
 	}
 }
 
-//Odalokuje prostor v pameti zabrany grafem
+/**
+ * @brief Odstraní veškerou dynamickou paměť zabranou grafem
+ * 
+ * @param graph 	Graf pro smazání
+ */
 void DestroyGraph(Graph **graph) {
 	if (*graph == NULL) return;
 	if ((*graph)->numNodes) {
@@ -158,6 +182,13 @@ void DestroyGraph(Graph **graph) {
 	*graph = NULL;
 }
 
+/**
+ * @brief Spočítá průnik prvků dvou grafů
+ * 
+ * @param graphA 	První graf pro prohledání
+ * @param graphB 	Druhý graf pro prohledání
+ * @return Graph* 	Výsledný graf, průnik \c graphA a \c graphB
+ */
 Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 	if (graphA == NULL || graphB == NULL) return NULL;
 	int numIntersects = 0;
@@ -212,6 +243,12 @@ Graph *FindIntersects(Graph *graphA, Graph *graphB) {
 	return intersects;
 }
 
+/**
+ * @brief Vyhledá sousední uzly zadaného uzlu a vrátí je jako seznam uzlů (graf)
+ * 
+ * @param node 		Uzel grafu, pro který hledat
+ * @return Graph* 	Výsledný seznam sousedů
+ */
 Graph *GetNeighbors(Node *node) {
 	if (node == NULL) return NULL;
 
@@ -235,6 +272,12 @@ Graph *GetNeighbors(Node *node) {
 	return neighbors;
 }
 
+/**
+ * @brief Vytvoří kopii grafu
+ * 
+ * @param toCopy 	Graf, který se má zkopírovat
+ * @return Graph* 	Kopie vstupního grafu
+ */
 Graph *Copy(Graph *toCopy) {
 	if (toCopy == NULL) return NULL;
 
@@ -270,7 +313,13 @@ Graph *Copy(Graph *toCopy) {
 	return copy;
 }
 
-
+/**
+ * @brief Vytvoří kopii grafu a přidá k ní uzel
+ * 
+ * @param toCopy 	Graf, který se má kopírovat
+ * @param toAdd 	Uzel pro přidání
+ * @return Graph* 	Zkopírovaný graf s přidaným uzlem
+ */
 Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
 	if (toCopy == NULL || toAdd == NULL) return NULL;
 
@@ -316,7 +365,13 @@ Graph *CopyAndAdd(Graph *toCopy, Node *toAdd) {
 	return copy;
 }
 
-
+/**
+ * @brief Vytvoří prázdný graf
+ * 
+ * @return Graph* 	Prázdný graf
+ * 
+ * @note Prázdným grafem se rozumí graf, který nemá žádné uzly
+ */
 Graph *CreateEmptyGraph() {
 	Graph *graph = malloc(sizeof(Graph)); //alokace vysledku
 	if (graph == NULL) ErrorMalloc();
@@ -325,6 +380,12 @@ Graph *CreateEmptyGraph() {
 	return graph;
 }
 
+/**
+ * @brief Odstraní uzel z grafu
+ * 
+ * @param source 	Zdrojový graf
+ * @param toRemove 	Uzel, který se má odstranit
+ */
 void RemoveFromGraph(Graph *source, Node *toRemove) {
 	//nakopiruju graf
 	int destIndex = 0;
@@ -348,6 +409,12 @@ void RemoveFromGraph(Graph *source, Node *toRemove) {
 	if ((source->numNodes !=0) && (source->nodes == NULL)) ErrorMalloc();
 }
 
+/**
+ * @brief Přidá uzel do grafu
+ * 
+ * @param source 	Zdrojový grag
+ * @param toAdd 	Uzel, který se má přidat
+ */
 void AddToGraph(Graph *source, Node *toAdd) {
 	//nakopiruju graf
 	source->numNodes++;
@@ -371,7 +438,17 @@ void AddToGraph(Graph *source, Node *toAdd) {
 	}
 }
 
-//Funkce implementujici Bron-Kerboschuv algoritmus pro hledani klik (clique) v grafu
+/**
+ * @brief Algoritmus Bron-Kerbosch pro hledání klik v grafu
+ * 
+ * @param r 						Nalezená klika
+ * @param p 						Graf, ve kterém hledat
+ * @param x 						Seznam vyloučených uzlů
+ * @param clicqueDestination 		Výstup algoritmu, pole nalezených klik
+ * @param numClicques 				Výstup algoritmu, počet nalezených klik
+ * 
+ * @note Bron-Kerbosch algoritmus: https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm
+ */
 void BronKerbosch(Graph *r, Graph *p, Graph *x, Graph ***clicqueDestination, int *numClicques) {
 	numIterations++;
 	if (p->numNodes == 0 && x->numNodes == 0) {
@@ -404,8 +481,13 @@ void BronKerbosch(Graph *r, Graph *p, Graph *x, Graph ***clicqueDestination, int
 	DestroyGraph(&pCopy);
 }
 
-//vyhleda nejvetsi kliky v grafu source a vrati je v poli foundCliques, jejich pocet ulozi do numFoundCliques
-//Bron-Kerbosch algorithm https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm?fbclid=IwAR1LpZZxsoxn0MeqUbiZahtBIuifaBAsSLxdx7oUbqiekWcsbgwWxds-wQU
+/**
+ * @brief Pomocná funkce pro volání Bron-Kerbosch algoritmu
+ * 
+ * @param source 			Graf, ve kterém hledat kliky
+ * @param foundCliques 		Nalezené kliky
+ * @param numFoundCliques 	Počet nalezených klik
+ */
 void FindCliques(Graph *source, Graph ***foundCliques, int *numFoundCliques) {
 	Graph *r_start = CreateEmptyGraph();
 	Graph *x_start = CreateEmptyGraph();
@@ -415,6 +497,13 @@ void FindCliques(Graph *source, Graph ***foundCliques, int *numFoundCliques) {
 	DestroyGraph(&x_start);
 }
 
+/**
+ * @brief Hlavní funkce programu
+ * 
+ * @param argc 	Počet argumentů
+ * @param argv 	Argumenty příkazové řádky
+ * @return int 	Návratová hodnota programu
+ */
 int main(int argc, char **argv) {
 	//////////////////////////////// INICIALIZACE, NACTENI ZE SOUBORU ////////////////////////////////
 	Graph *graph;
